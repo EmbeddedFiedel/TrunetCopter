@@ -213,16 +213,16 @@ int main(void) {
 
 	chEvtInit(&imu_event);
 	
-	EepromOpen(&EepromFile);
+//	EepromOpen(&EepromFile);
 	
 	chThdSleepMilliseconds(100);
 	I2CInitLocal();
 	chThdSleepMilliseconds(100);
 
-	baro_ms5611_start();
+/*	baro_ms5611_start();
 	imu_mpu6050_start();
 	magn_hmc5883_start();
-	
+*/
 	algebra_start();
 	/*
 	 * Creates the threads.

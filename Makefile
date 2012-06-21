@@ -5,8 +5,9 @@
 
 # Compiler options here.
 ifeq ($(USE_OPT),)
-  USE_OPT = -O2 -ggdb -fomit-frame-pointer -falign-functions=16
+  USE_OPT = -O0 -ggdb -fomit-frame-pointer -falign-functions=16
 endif
+#  USE_OPT = -O2 -ggdb -fomit-frame-pointer -falign-functions=16
 
 # C specific options here (added to USE_OPT).
 ifeq ($(USE_COPT),)
@@ -58,8 +59,11 @@ endif
 PROJECT = trunetcopter
 
 # Imported source files and paths
-CHIBIOS = /Users/trunet/src/chibios
-include $(CHIBIOS)/boards/MAPLEMINI_STM32_F103/board.mk
+CHIBIOS = ../ChibiOS
+#use this for the MapleMini board:
+#include $(CHIBIOS)/boards/MAPLEMINI_STM32_F103/board.mk
+#use this for the Olimexino STM32 board:
+include $(CHIBIOS)/boards/OLIMEXINO_STM32/board.mk
 include $(CHIBIOS)/os/hal/platforms/STM32F1xx/platform.mk
 include $(CHIBIOS)/os/hal/hal.mk
 include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32F1xx/port.mk
@@ -216,3 +220,24 @@ include $(CHIBIOS)/os/ports/GCC/ARMCMx/rules.mk
 
 install:
 	python /Users/trunet/src/libmaple/support/stm32loader.py -p /dev/tty.usbserial-A8006AtT -eVw /Users/trunet/Documents/workspace/trunetcopter/build/trunetcopter.bin
+
+#Here some defines for using OpenOCD and Olimex JTAG
+
+# specify output filename here (must be *.bin file)
+TARGET = build/trunetcopter.bin
+
+# specify the directory where openocd executable reside
+OPENOCD_DIR = 'openocd/'
+
+# specify OpenOCD executable 
+OPENOCD = $(OPENOCD_DIR)openocd5.exe
+
+# specify OpenOCD configuration file (in your project folder)
+OPENOCD_CFG = openocd/openocd_program.cfg
+
+
+# program the STM32F1 internal flash memory
+program: $(TARGET)
+	@echo "Flash Programming with OpenOCD..."		# display a message on the console
+	$(OPENOCD) -s $(OPENOCD_DIR) -f $(OPENOCD_CFG)	# program the onchip FLASH here
+	@echo "Flash Programming Finished."				# display a message on the console
