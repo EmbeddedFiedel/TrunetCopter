@@ -30,9 +30,9 @@
 
 #ifdef BOARD_OLIMEXINO_STM32
 	#define LED1_PORT		GPIOA
-	#define LED1_PIN			5
+	#define LED1_PIN			1
 	#define LED2_PORT		GPIOA
-	#define LED2_PIN			1
+	#define LED2_PIN			5
 #else
 	#define LED1_PORT		GPIOB
 	#define LED1_PIN			1

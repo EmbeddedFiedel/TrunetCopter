@@ -231,6 +231,8 @@ int main(void) {
 #ifdef DEBUG
 	chThdCreateStatic(waThreadDebug, sizeof(waThreadDebug), NORMALPRIO, ThreadDebug, NULL);
 #endif
-	while (1);
+	while (TRUE) {
+	    chThdSleepMilliseconds(500);
+	}
 	return 0;
 }
