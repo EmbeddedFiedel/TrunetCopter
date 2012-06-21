@@ -9,8 +9,13 @@
 #define MPU60X0_H_
 
 #define I2C_MPU 			I2CD1
-#define MPU_INT_PORT		GPIOA
-#define MPU_INT_PIN			13
+#ifdef BOARD_OLIMEXINO_STM32
+	#define MPU_INT_PORT		GPIOA
+	#define MPU_INT_PIN			0
+#else
+	#define MPU_INT_PORT		GPIOA
+	#define MPU_INT_PIN			13
+#endif
 #define MPU_ADDR			0b1101000 // AD0 = 0, AD1=1(0b1101001)
 
 #define AUX_VDDIO 			0x01

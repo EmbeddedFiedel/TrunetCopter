@@ -176,9 +176,9 @@ static msg_t ThreadLed(void *arg) {
 	(void)arg;
 	
 	while (TRUE) {
-		palClearPad(GPIOB, 1);
+		palClearPad(LED1_PORT, LED1_PIN);
 		chThdSleepMilliseconds(500);
-		palSetPad(GPIOB, 1);
+		palSetPad(LED1_PORT, LED1_PIN);
 		chThdSleepMilliseconds(500);
 	}
 	
@@ -231,6 +231,6 @@ int main(void) {
 #ifdef DEBUG
 	chThdCreateStatic(waThreadDebug, sizeof(waThreadDebug), NORMALPRIO, ThreadDebug, NULL);
 #endif
-
+	while (1);
 	return 0;
 }

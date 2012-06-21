@@ -28,4 +28,14 @@
 #define EEPROM_SETTINGS_SIZE     4096
 #define EEPROM_SETTINGS_FINISH   (EEPROM_SETTINGS_START + EEPROM_SETTINGS_SIZE)
 
+#ifdef BOARD_OLIMEXINO_STM32
+	#define LED1_PORT		GPIOA
+	#define LED1_PIN			5
+	#define LED2_PORT		GPIOA
+	#define LED2_PIN			1
+#else
+	#define LED1_PORT		GPIOB
+	#define LED1_PIN			1
+#endif
+
 #endif /* MAIN_H_ */
