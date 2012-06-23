@@ -80,6 +80,8 @@ static msg_t ThreadDebug(void *arg) {
 #ifndef DEBUG_OUTPUT_QUARTENION_BINARY
 		chprintf((BaseChannel *)&SERIAL_DEBUG, "frequency: %f\r\n", sampleFreq);
 		chprintf((BaseChannel *)&SERIAL_DEBUG, "----------------------------------\r\n");
+		chprintf((BaseChannel *)&SERIAL_DEBUG, "RX (Channel 1, 2, 3, 4): %d, %d, %d, %d\r\n", channel_value[0], channel_value[1], channel_value[2], channel_value[3]);
+		chprintf((BaseChannel *)&SERIAL_DEBUG, "----------------------------------\r\n");
 		chprintf((BaseChannel *)&SERIAL_DEBUG, "Temperature: %f\r\n", baro_data.ftempms);
 		chprintf((BaseChannel *)&SERIAL_DEBUG, "Pressure: %f\r\n", baro_data.fbaroms);
 		chprintf((BaseChannel *)&SERIAL_DEBUG, "Altitude: %f\r\n", baro_data.faltims);
@@ -199,22 +201,6 @@ static msg_t ThreadDebug(void *arg) {
  *                                     | |
  *                                     |_|
  */
-static void mpu6050_interrupt_handler(EXTDriver *extp, expchannel_t channel) {
-		(void)extp;
-		(void)channel;
-
-		chSysLockFromIsr();
-		chEvtBroadcastFlagsI(&imu_event, EVENT_MASK(0));
-		chSysUnlockFromIsr();
-}
-static void hmc5883_interrupt_handler(EXTDriver *extp, expchannel_t channel) {
-		(void)extp;
-		(void)channel;
-
-		chSysLockFromIsr();
-		chEvtBroadcastFlagsI(&imu_event, EVENT_MASK(1));
-		chSysUnlockFromIsr();
-}
 static const EXTConfig extcfg = {
 	{
 	    {EXT_CH_MODE_DISABLED, NULL},
@@ -228,11 +214,11 @@ static const EXTConfig extcfg = {
     	{EXT_CH_MODE_DISABLED, NULL},
 		{EXT_CH_MODE_DISABLED, NULL},
     	{EXT_CH_MODE_DISABLED, NULL},
+    	{EXT_CH_MODE_FALLING_EDGE | EXT_CH_MODE_AUTOSTART, hmc5883_interrupt_handler},
     	{EXT_CH_MODE_DISABLED, NULL},
     	{EXT_CH_MODE_DISABLED, NULL},
     	{EXT_CH_MODE_DISABLED, NULL},
-    	{EXT_CH_MODE_DISABLED, NULL},
-    	{EXT_CH_MODE_FALLING_EDGE | EXT_CH_MODE_AUTOSTART, hmc5883_interrupt_handler}
+    	{EXT_CH_MODE_DISABLED, NULL}
 	},
 	EXT_MODE_EXTI(0, /* 0 */
 	              0, /* 1 */
@@ -245,11 +231,11 @@ static const EXTConfig extcfg = {
 	              0, /* 8 */
 	              0, /* 9 */
 	              0, /* 10 */
-	              0, /* 11 */
+	              EXT_MODE_GPIOA, /* 11 */
 	              0, /* 12 */
 	              0, /* 13 */
 	              0, /* 14 */
-	              EXT_MODE_GPIOC) /* 15 */
+	              0) /* 15 */
 };
 
 /*
@@ -308,6 +294,12 @@ int main(void) {
 	 */
 	palSetPadMode(GPIOB, 6, PAL_MODE_STM32_ALTERNATE_OPENDRAIN);
 	palSetPadMode(GPIOB, 7, PAL_MODE_STM32_ALTERNATE_OPENDRAIN);
+
+	/*
+	 * Set Interrupt pins to input
+	 */
+	palSetPadMode(GPIOB, 5, PAL_MODE_INPUT); // MPU6050 Interrupt
+	palSetPadMode(GPIOA, 11, PAL_MODE_INPUT); // HMC5883L Interrupt
 
 	chEvtInit(&imu_event);
 	

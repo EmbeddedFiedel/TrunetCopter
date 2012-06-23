@@ -1,5 +1,5 @@
-#ifndef BARO_MS56111_H
-#define BARO_MS56111_H
+#ifndef MAGN_HMC5883_H
+#define MAGN_HMC5883_H
 
 #define HMC58X3_ADDR 0x1E // 7 bit address of the HMC58X3 used with the Wire library
 #define HMC_POS_BIAS 1
@@ -29,18 +29,6 @@
 #define HMC58X3_R_IDB 11
 #define HMC58X3_R_IDC 12
 
-float x_scale,y_scale,z_scale,x_max,y_max,z_max;
-const int16_t counts_per_milligauss[8]={
-  1370,
-  1090,
-  820,
-  660,
-  440,
-  390,
-  330,
-  230
-};
-
 void hmc5883_init(void);
 void hmc5883_setGain(unsigned char gain);
 void hmc5883_setMode(unsigned char mode);
@@ -48,6 +36,7 @@ void hmc5883_getRaw(int16_t *x, int16_t *y, int16_t *z);
 void hmc5883_getValuesfloat(void);
 void hmc5883_calibrate(unsigned char gain);
 void hmc5883_setDOR(unsigned char DOR);
+void hmc5883_interrupt_handler(EXTDriver *extp, expchannel_t channel);
 void magn_hmc5883_start(void);
 
 #endif

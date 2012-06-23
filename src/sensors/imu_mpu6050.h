@@ -364,6 +364,7 @@ void write_mpu_int_cfg(void);
 void write_mpu_int_enable(void);
 void mpu_i2c_write(uint8_t addr, uint8_t value);
 void mpu_i2c_read_data(uint8_t addr, uint8_t length);
+void mpu6050_interrupt_handler(EXTDriver *extp, expchannel_t channel);
 
 void imu_mpu6050_start(void);
 

@@ -236,6 +236,15 @@ void mpu_i2c_read_data(uint8_t addr, uint8_t length){
 	imu_data.gyro_z = gyro[2] / 16.4f;
 }
 
+void mpu6050_interrupt_handler(EXTDriver *extp, expchannel_t channel) {
+		(void)extp;
+		(void)channel;
+
+		chSysLockFromIsr();
+		chEvtBroadcastFlagsI(&imu_event, EVENT_MASK(0));
+		chSysUnlockFromIsr();
+}
+
 /**
  * Polling thread
  */

@@ -9,6 +9,18 @@
 #include "../main.h"
 #include "../i2c_local.h"
 
+float x_scale,y_scale,z_scale,x_max,y_max,z_max;
+const int16_t counts_per_milligauss[8]={
+  1370,
+  1090,
+  820,
+  660,
+  440,
+  390,
+  330,
+  230
+};
+
 extern imu_data_t imu_data;
 extern EventSource imu_event;
 
@@ -121,6 +133,15 @@ void hmc5883_setDOR(unsigned char DOR) {
 	txbuf[0] = HMC58X3_R_CONFA;
 	txbuf[1] = DOR<<2;
 	i2c_transmit(HMC58X3_ADDR, txbuf, 2, NULL, 0);
+}
+
+void hmc5883_interrupt_handler(EXTDriver *extp, expchannel_t channel) {
+		(void)extp;
+		(void)channel;
+
+		chSysLockFromIsr();
+		chEvtBroadcastFlagsI(&imu_event, EVENT_MASK(1));
+		chSysUnlockFromIsr();
 }
 
 /**
