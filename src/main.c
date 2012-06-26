@@ -292,6 +292,24 @@ static const EXTConfig extcfg = {
 };
 
 /*
+ *  _______          ____  __
+ * |  __ \ \        / /  \/  |
+ * | |__) \ \  /\  / /| \  / |
+ * |  ___/ \ \/  \/ / | |\/| |
+ * | |      \  /\  /  | |  | |
+ * |_|       \/  \/   |_|  |_|
+ */
+static PWMConfig pwmcfg = { 1000000, //72, /* 1 uS clock.*/
+							20000, //4000, /* Period 250Hz.*/
+							NULL,
+                            { {PWM_OUTPUT_DISABLED, NULL},
+                              {PWM_OUTPUT_DISABLED, NULL},
+                              {PWM_OUTPUT_ACTIVE_HIGH, NULL},
+                              {PWM_OUTPUT_DISABLED, NULL} },
+                            0
+                          };
+
+/*
  * Red LED blinker thread, times are in milliseconds.
  * GPIOB,1 is the LED on the Maple Mini
  */
@@ -369,6 +387,18 @@ int main(void) {
 	TIM2->SR = 0;
 	TIM2->DIER = 0;
 	TIM2->CR1 = 0x00000001;
+
+	/*
+	 * Enable PWM
+	 */
+	pwmInit();
+	pwmObjectInit(&PWMD3); // TIM3 as PWM driver, giving us outputs on PB6-PB9 (I think?)
+	palSetPadMode(GPIOB, 0, PAL_MODE_STM32_ALTERNATE_PUSHPULL); // Motor 1
+	pwmStart(&PWMD3, &pwmcfg);
+	//pwmEnableChannel(&PWMD3, 0, 1000); // start up PWMs so ESCs can initialize
+	//pwmEnableChannel(&PWMD3, 1, 1000);
+	pwmEnableChannel(&PWMD3, 2, 1000);
+	//pwmEnableChannel(&PWMD3, 3, 1000);
 
 	chEvtInit(&imu_event);
 	
