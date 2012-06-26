@@ -63,6 +63,10 @@ EventSource imu_event;
 
 extern float sampleFreq;
 
+#define RC_IN_RANGE(x) (((x)>900 && (x)<2300))
+volatile unsigned short RC_INPUT_CHANNELS[4], RC_INPUT_LAST_TCNT;
+char PPM_FRAME_GOOD = 1;
+
 /* 
  * Threads
  */
@@ -80,7 +84,7 @@ static msg_t ThreadDebug(void *arg) {
 #ifndef DEBUG_OUTPUT_QUARTENION_BINARY
 		chprintf((BaseChannel *)&SERIAL_DEBUG, "frequency: %f\r\n", sampleFreq);
 		chprintf((BaseChannel *)&SERIAL_DEBUG, "----------------------------------\r\n");
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "RX (Channel 1, 2, 3, 4): %d, %d, %d, %d\r\n", channel_value[0], channel_value[1], channel_value[2], channel_value[3]);
+		chprintf((BaseChannel *)&SERIAL_DEBUG, "RX (Channel 1, 2, 3, 4): %d, %d, %d, %d\r\n", RC_INPUT_CHANNELS[0], RC_INPUT_CHANNELS[1], RC_INPUT_CHANNELS[2], RC_INPUT_CHANNELS[3]);
 		chprintf((BaseChannel *)&SERIAL_DEBUG, "----------------------------------\r\n");
 		chprintf((BaseChannel *)&SERIAL_DEBUG, "Temperature: %f\r\n", baro_data.ftempms);
 		chprintf((BaseChannel *)&SERIAL_DEBUG, "Pressure: %f\r\n", baro_data.fbaroms);
@@ -201,6 +205,55 @@ static msg_t ThreadDebug(void *arg) {
  *                                     | |
  *                                     |_|
  */
+void rx_channel1_interrupt(EXTDriver *extp, expchannel_t channel) {
+		(void)extp;
+		(void)channel;
+
+		chSysLockFromIsr();
+		if (palReadPad(GPIOB, 12) == PAL_LOW) {
+			unsigned short tmp = TIM2->CNT - RC_INPUT_LAST_TCNT;
+			if (RC_IN_RANGE(tmp)) RC_INPUT_CHANNELS[0] = tmp;
+		}
+		RC_INPUT_LAST_TCNT = TIM2->CNT;
+		chSysUnlockFromIsr();
+}
+void rx_channel2_interrupt(EXTDriver *extp, expchannel_t channel) {
+		(void)extp;
+		(void)channel;
+
+		chSysLockFromIsr();
+		if (palReadPad(GPIOB, 13) == PAL_LOW) {
+			unsigned short tmp = TIM2->CNT - RC_INPUT_LAST_TCNT;
+			if (RC_IN_RANGE(tmp)) RC_INPUT_CHANNELS[1] = tmp;
+		}
+		RC_INPUT_LAST_TCNT = TIM2->CNT;
+		chSysUnlockFromIsr();
+}
+void rx_channel3_interrupt(EXTDriver *extp, expchannel_t channel) {
+		(void)extp;
+		(void)channel;
+
+		chSysLockFromIsr();
+		if (palReadPad(GPIOB, 14) == PAL_LOW) {
+			unsigned short tmp = TIM2->CNT - RC_INPUT_LAST_TCNT;
+			if (RC_IN_RANGE(tmp)) RC_INPUT_CHANNELS[2] = tmp;
+		}
+		RC_INPUT_LAST_TCNT = TIM2->CNT;
+		chSysUnlockFromIsr();
+}
+void rx_channel4_interrupt(EXTDriver *extp, expchannel_t channel) {
+		(void)extp;
+		(void)channel;
+
+		chSysLockFromIsr();
+		if (palReadPad(GPIOB, 15) == PAL_LOW) {
+			unsigned short tmp = TIM2->CNT - RC_INPUT_LAST_TCNT;
+			if (RC_IN_RANGE(tmp)) RC_INPUT_CHANNELS[3] = tmp;
+		}
+		RC_INPUT_LAST_TCNT = TIM2->CNT;
+		chSysUnlockFromIsr();
+}
+
 static const EXTConfig extcfg = {
 	{
 	    {EXT_CH_MODE_DISABLED, NULL},
@@ -215,10 +268,10 @@ static const EXTConfig extcfg = {
 		{EXT_CH_MODE_DISABLED, NULL},
     	{EXT_CH_MODE_DISABLED, NULL},
     	{EXT_CH_MODE_FALLING_EDGE | EXT_CH_MODE_AUTOSTART, hmc5883_interrupt_handler},
-    	{EXT_CH_MODE_DISABLED, NULL},
-    	{EXT_CH_MODE_DISABLED, NULL},
-    	{EXT_CH_MODE_DISABLED, NULL},
-    	{EXT_CH_MODE_DISABLED, NULL}
+    	{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel1_interrupt},
+    	{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel2_interrupt},
+    	{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel3_interrupt},
+    	{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel4_interrupt}
 	},
 	EXT_MODE_EXTI(0, /* 0 */
 	              0, /* 1 */
@@ -232,10 +285,10 @@ static const EXTConfig extcfg = {
 	              0, /* 9 */
 	              0, /* 10 */
 	              EXT_MODE_GPIOA, /* 11 */
-	              0, /* 12 */
-	              0, /* 13 */
-	              0, /* 14 */
-	              0) /* 15 */
+	              EXT_MODE_GPIOB, /* 12 */
+	              EXT_MODE_GPIOB, /* 13 */
+	              EXT_MODE_GPIOB, /* 14 */
+	              EXT_MODE_GPIOB) /* 15 */
 };
 
 /*
@@ -300,6 +353,22 @@ int main(void) {
 	 */
 	palSetPadMode(GPIOB, 5, PAL_MODE_INPUT); // MPU6050 Interrupt
 	palSetPadMode(GPIOA, 11, PAL_MODE_INPUT); // HMC5883L Interrupt
+	palSetPadMode(GPIOB, 12, PAL_MODE_INPUT); // RX Channel 1
+	palSetPadMode(GPIOB, 13, PAL_MODE_INPUT); // RX Channel 2
+	palSetPadMode(GPIOB, 14, PAL_MODE_INPUT); // RX Channel 3
+	palSetPadMode(GPIOB, 15, PAL_MODE_INPUT); // RX Channel 4
+
+	/*
+	 * Enable Timer2
+	 */
+	TIM2->CR1 = 0x00000000;
+	RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+	TIM2->SMCR = 0; // slave mode disabled
+	TIM2->PSC = 72;
+	TIM2->ARR = 0xffff;
+	TIM2->SR = 0;
+	TIM2->DIER = 0;
+	TIM2->CR1 = 0x00000001;
 
 	chEvtInit(&imu_event);
 	
