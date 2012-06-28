@@ -260,14 +260,14 @@ static const EXTConfig extcfg = {
    	 	{EXT_CH_MODE_DISABLED, NULL},
    	 	{EXT_CH_MODE_DISABLED, NULL},
     	{EXT_CH_MODE_DISABLED, NULL},
-		{EXT_CH_MODE_DISABLED, NULL},
+		{EXT_CH_MODE_FALLING_EDGE | EXT_CH_MODE_AUTOSTART, hmc5883_interrupt_handler},
 		{EXT_CH_MODE_RISING_EDGE | EXT_CH_MODE_AUTOSTART, mpu6050_interrupt_handler},
 		{EXT_CH_MODE_DISABLED, NULL},
     	{EXT_CH_MODE_DISABLED, NULL},
     	{EXT_CH_MODE_DISABLED, NULL},
 		{EXT_CH_MODE_DISABLED, NULL},
     	{EXT_CH_MODE_DISABLED, NULL},
-    	{EXT_CH_MODE_FALLING_EDGE | EXT_CH_MODE_AUTOSTART, hmc5883_interrupt_handler},
+    	{EXT_CH_MODE_DISABLED, NULL},
     	{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel1_interrupt},
     	{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel2_interrupt},
     	{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel3_interrupt},
@@ -277,14 +277,14 @@ static const EXTConfig extcfg = {
 	              0, /* 1 */
 	              0, /* 2 */
 	              0, /* 3 */
-	              0, /* 4 */
+	              EXT_MODE_GPIOA, /* 4 */
 	              EXT_MODE_GPIOB, /* 5 */
 	              0, /* 6 */
 	              0, /* 7 */
 	              0, /* 8 */
 	              0, /* 9 */
 	              0, /* 10 */
-	              EXT_MODE_GPIOA, /* 11 */
+	              0, /* 11 */
 	              EXT_MODE_GPIOB, /* 12 */
 	              EXT_MODE_GPIOB, /* 13 */
 	              EXT_MODE_GPIOB, /* 14 */
@@ -369,8 +369,8 @@ int main(void) {
 	/*
 	 * Set Interrupt pins to input
 	 */
+	palSetPadMode(GPIOA, 4, PAL_MODE_INPUT); // HMC5883L Interrupt
 	palSetPadMode(GPIOB, 5, PAL_MODE_INPUT); // MPU6050 Interrupt
-	palSetPadMode(GPIOA, 11, PAL_MODE_INPUT); // HMC5883L Interrupt
 	palSetPadMode(GPIOB, 12, PAL_MODE_INPUT); // RX Channel 1
 	palSetPadMode(GPIOB, 13, PAL_MODE_INPUT); // RX Channel 2
 	palSetPadMode(GPIOB, 14, PAL_MODE_INPUT); // RX Channel 3

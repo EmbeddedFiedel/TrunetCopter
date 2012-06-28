@@ -59,13 +59,13 @@
  * ADC driver system settings.
  */
 #define STM32_ADC_USE_ADC1                  FALSE//TRUE
-#define STM32_ADC_ADC1_DMA_PRIORITY         0//2
-#define STM32_ADC_ADC1_IRQ_PRIORITY         15//5
+#define STM32_ADC_ADC1_DMA_PRIORITY         2
+#define STM32_ADC_ADC1_IRQ_PRIORITY         5
 
 /*
  * CAN driver system settings.
  */
-#define STM32_CAN_USE_CAN1                  TRUE
+#define STM32_CAN_USE_CAN1                  FALSE
 #define STM32_CAN_CAN1_IRQ_PRIORITY         11
 
 /*
@@ -77,7 +77,7 @@
 #define STM32_EXT_EXTI3_IRQ_PRIORITY        6
 #define STM32_EXT_EXTI4_IRQ_PRIORITY        6
 #define STM32_EXT_EXTI5_9_IRQ_PRIORITY      6
-#define STM32_EXT_EXTI10_15_IRQ_PRIORITY    6
+#define STM32_EXT_EXTI10_15_IRQ_PRIORITY    2
 #define STM32_EXT_EXTI16_IRQ_PRIORITY       6
 #define STM32_EXT_EXTI17_IRQ_PRIORITY       6
 #define STM32_EXT_EXTI18_IRQ_PRIORITY       6
@@ -105,10 +105,10 @@
 #define STM32_I2C_USE_I2C1                  TRUE
 #define STM32_I2C_USE_I2C2                  FALSE
 #define STM32_I2C_USE_I2C3                  FALSE
-#define STM32_I2C_I2C1_IRQ_PRIORITY         6//10
+#define STM32_I2C_I2C1_IRQ_PRIORITY         10
 #define STM32_I2C_I2C2_IRQ_PRIORITY         10
 #define STM32_I2C_I2C3_IRQ_PRIORITY         10
-#define STM32_I2C_I2C1_DMA_PRIORITY         0//1
+#define STM32_I2C_I2C1_DMA_PRIORITY         1
 #define STM32_I2C_I2C2_DMA_PRIORITY         1
 #define STM32_I2C_I2C3_DMA_PRIORITY         1
 #define STM32_I2C_I2C1_DMA_ERROR_HOOK()     chSysHalt()
@@ -200,7 +200,7 @@
 /*
  * USB driver system settings.
  */
-#define STM32_USB_USE_USB1                  TRUE
+#define STM32_USB_USE_USB1                  FALSE//TRUE
 #define STM32_USB_LOW_POWER_ON_SUSPEND      FALSE
 #define STM32_USB_USB1_HP_IRQ_PRIORITY      6
 #define STM32_USB_USB1_LP_IRQ_PRIORITY      14
