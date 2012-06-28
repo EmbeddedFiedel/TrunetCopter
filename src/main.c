@@ -299,13 +299,24 @@ static const EXTConfig extcfg = {
  * | |      \  /\  /  | |  | |
  * |_|       \/  \/   |_|  |_|
  */
-static PWMConfig pwmcfg = { 1000000, //72, /* 1 uS clock.*/
+static PWMConfig pwmcfg1 = { 1000000, //72, /* 1 uS clock.*/
 							20000, //4000, /* Period 250Hz.*/
 							NULL,
-                            { {PWM_OUTPUT_DISABLED, NULL},
-                              {PWM_OUTPUT_DISABLED, NULL},
-                              {PWM_OUTPUT_ACTIVE_HIGH, NULL},
-                              {PWM_OUTPUT_DISABLED, NULL} },
+                            { {PWM_OUTPUT_ACTIVE_HIGH, NULL}, //CH1 - D27 - GPIOA 8
+                              {PWM_OUTPUT_DISABLED, NULL}, //CH2 - D26 - GPIOA 9
+                              {PWM_OUTPUT_DISABLED, NULL}, //CH3 - D25 - GPIOA 10
+                              {PWM_OUTPUT_ACTIVE_HIGH, NULL} }, //CH4 - D24 - GPIOA 11
+                            0
+                          };
+static PWMConfig pwmcfg3 = { 1000000, //72, /* 1 uS clock.*/
+							20000, //4000, /* Period 250Hz.*/
+							NULL,
+                            { {PWM_OUTPUT_ACTIVE_HIGH, NULL}, //CH1 - D5 - GPIOA 6
+                              {PWM_OUTPUT_ACTIVE_HIGH, NULL}, //CH2 - D4 - GPIOA 7
+                              {PWM_OUTPUT_DISABLED, NULL}, //CH3 - D3 - GPIOB 0
+                              {PWM_OUTPUT_DISABLED, NULL} }, //CH4 - D33 - GPIOB 1
+                              //{PWM_OUTPUT_ACTIVE_HIGH, NULL}, //CH3 - D3 - GPIOB 0
+                              //{PWM_OUTPUT_ACTIVE_HIGH, NULL} }, //CH4 - D33 - GPIOB 1
                             0
                           };
 
@@ -325,6 +336,22 @@ static msg_t ThreadLed(void *arg) {
 		chThdSleepMilliseconds(500);
 	}
 	
+	return 0;
+}
+
+static WORKING_AREA(waThreadMotors, 64);
+static msg_t ThreadMotors(void *arg) {
+	(void)arg;
+	chRegSetThreadName("Motors");
+
+	while (TRUE) {
+		pwmEnableChannel(&PWMD1, 0, RC_INPUT_CHANNELS[2]); // start up PWMs so ESCs can initialize
+		pwmEnableChannel(&PWMD1, 3, RC_INPUT_CHANNELS[2]);
+		pwmEnableChannel(&PWMD3, 0, RC_INPUT_CHANNELS[2]);
+		pwmEnableChannel(&PWMD3, 1, RC_INPUT_CHANNELS[2]);
+		chThdSleepMilliseconds(50);
+	}
+
 	return 0;
 }
 
@@ -392,12 +419,21 @@ int main(void) {
 	 * Enable PWM
 	 */
 	pwmInit();
-	pwmObjectInit(&PWMD3); // TIM3 as PWM driver, giving us outputs on PB6-PB9 (I think?)
-	palSetPadMode(GPIOB, 0, PAL_MODE_STM32_ALTERNATE_PUSHPULL); // Motor 1
-	pwmStart(&PWMD3, &pwmcfg);
-	//pwmEnableChannel(&PWMD3, 0, 1000); // start up PWMs so ESCs can initialize
-	//pwmEnableChannel(&PWMD3, 1, 1000);
-	pwmEnableChannel(&PWMD3, 2, 1000);
+	pwmObjectInit(&PWMD1);
+	pwmObjectInit(&PWMD3);
+	palSetPadMode(GPIOA,  8, PAL_MODE_STM32_ALTERNATE_PUSHPULL); // MOTOR 1
+	palSetPadMode(GPIOA, 11, PAL_MODE_STM32_ALTERNATE_PUSHPULL); // MOTOR 2
+	palSetPadMode(GPIOA,  6, PAL_MODE_STM32_ALTERNATE_PUSHPULL); // MOTOR 3
+	palSetPadMode(GPIOA,  7, PAL_MODE_STM32_ALTERNATE_PUSHPULL); // MOTOR 4
+	//palSetPadMode(GPIOB,  0, PAL_MODE_STM32_ALTERNATE_PUSHPULL); // MOTOR 5
+	//palSetPadMode(GPIOB,  1, PAL_MODE_STM32_ALTERNATE_PUSHPULL); // MOTOR 6
+	pwmStart(&PWMD1, &pwmcfg1);
+	pwmStart(&PWMD3, &pwmcfg3);
+	pwmEnableChannel(&PWMD1, 0, 1000); // start up PWMs so ESCs can initialize
+	pwmEnableChannel(&PWMD1, 3, 1000);
+	pwmEnableChannel(&PWMD3, 0, 1000);
+	pwmEnableChannel(&PWMD3, 1, 1000);
+	//pwmEnableChannel(&PWMD3, 2, 1000);
 	//pwmEnableChannel(&PWMD3, 3, 1000);
 
 	chEvtInit(&imu_event);
@@ -421,6 +457,7 @@ int main(void) {
 	 * Creates the threads.
 	 */
 	chThdCreateStatic(waThreadLed, sizeof(waThreadLed), NORMALPRIO, ThreadLed, NULL);
+	chThdCreateStatic(waThreadMotors, sizeof(waThreadMotors), NORMALPRIO, ThreadMotors, NULL);
 #ifdef DEBUG
 	chThdCreateStatic(waThreadDebug, sizeof(waThreadDebug), NORMALPRIO, ThreadDebug, NULL);
 #endif
