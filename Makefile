@@ -67,7 +67,8 @@ include $(CHIBIOS)/os/kernel/kernel.mk
 #include $(CHIBIOS)/test/test.mk
 
 # Define linker script file here
-LDSCRIPT= $(PORTLD)/STM32F103xB.ld
+#LDSCRIPT= $(PORTLD)/STM32F103xB.ld
+LDSCRIPT= $(PORTLD)/STM32F103xE_maple.ld
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -215,4 +216,5 @@ endif
 include $(CHIBIOS)/os/ports/GCC/ARMCMx/rules.mk
 
 install:
-	python /Users/trunet/src/libmaple/support/stm32loader.py -p /dev/tty.usbserial-A8006AtT -eVw /Users/trunet/Documents/workspace/trunetcopter/build/trunetcopter.bin
+	#python /Users/trunet/src/libmaple/support/stm32loader.py -p /dev/tty.usbserial-A8006AtT -eVw /Users/trunet/Documents/workspace/trunetcopter/build/trunetcopter.bin
+	dfu-util -a1 -d 1EAF:0003 -D /Users/trunet/Documents/workspace/trunetcopter/build/trunetcopter.bin -R
