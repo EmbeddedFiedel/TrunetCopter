@@ -210,11 +210,11 @@ void rx_channel1_interrupt(EXTDriver *extp, expchannel_t channel) {
 		(void)channel;
 
 		chSysLockFromIsr();
-		if (palReadPad(GPIOB, 12) == PAL_LOW) {
-			unsigned short tmp = TIM2->CNT - RC_INPUT_LAST_TCNT;
+		if (palReadPad(GPIOC, 6) == PAL_LOW) {
+			unsigned short tmp = TIM4->CNT - RC_INPUT_LAST_TCNT;
 			if (RC_IN_RANGE(tmp)) RC_INPUT_CHANNELS[0] = tmp;
 		}
-		RC_INPUT_LAST_TCNT = TIM2->CNT;
+		RC_INPUT_LAST_TCNT = TIM4->CNT;
 		chSysUnlockFromIsr();
 }
 void rx_channel2_interrupt(EXTDriver *extp, expchannel_t channel) {
@@ -222,11 +222,11 @@ void rx_channel2_interrupt(EXTDriver *extp, expchannel_t channel) {
 		(void)channel;
 
 		chSysLockFromIsr();
-		if (palReadPad(GPIOB, 13) == PAL_LOW) {
-			unsigned short tmp = TIM2->CNT - RC_INPUT_LAST_TCNT;
+		if (palReadPad(GPIOC, 7) == PAL_LOW) {
+			unsigned short tmp = TIM4->CNT - RC_INPUT_LAST_TCNT;
 			if (RC_IN_RANGE(tmp)) RC_INPUT_CHANNELS[1] = tmp;
 		}
-		RC_INPUT_LAST_TCNT = TIM2->CNT;
+		RC_INPUT_LAST_TCNT = TIM4->CNT;
 		chSysUnlockFromIsr();
 }
 void rx_channel3_interrupt(EXTDriver *extp, expchannel_t channel) {
@@ -234,11 +234,11 @@ void rx_channel3_interrupt(EXTDriver *extp, expchannel_t channel) {
 		(void)channel;
 
 		chSysLockFromIsr();
-		if (palReadPad(GPIOB, 14) == PAL_LOW) {
-			unsigned short tmp = TIM2->CNT - RC_INPUT_LAST_TCNT;
+		if (palReadPad(GPIOC, 8) == PAL_LOW) {
+			unsigned short tmp = TIM4->CNT - RC_INPUT_LAST_TCNT;
 			if (RC_IN_RANGE(tmp)) RC_INPUT_CHANNELS[2] = tmp;
 		}
-		RC_INPUT_LAST_TCNT = TIM2->CNT;
+		RC_INPUT_LAST_TCNT = TIM4->CNT;
 		chSysUnlockFromIsr();
 }
 void rx_channel4_interrupt(EXTDriver *extp, expchannel_t channel) {
@@ -246,11 +246,11 @@ void rx_channel4_interrupt(EXTDriver *extp, expchannel_t channel) {
 		(void)channel;
 
 		chSysLockFromIsr();
-		if (palReadPad(GPIOB, 15) == PAL_LOW) {
-			unsigned short tmp = TIM2->CNT - RC_INPUT_LAST_TCNT;
+		if (palReadPad(GPIOC, 9) == PAL_LOW) {
+			unsigned short tmp = TIM4->CNT - RC_INPUT_LAST_TCNT;
 			if (RC_IN_RANGE(tmp)) RC_INPUT_CHANNELS[3] = tmp;
 		}
-		RC_INPUT_LAST_TCNT = TIM2->CNT;
+		RC_INPUT_LAST_TCNT = TIM4->CNT;
 		chSysUnlockFromIsr();
 }
 
@@ -262,16 +262,16 @@ static const EXTConfig extcfg = {
     	{EXT_CH_MODE_DISABLED, NULL},
 		{EXT_CH_MODE_FALLING_EDGE | EXT_CH_MODE_AUTOSTART, hmc5883_interrupt_handler},
 		{EXT_CH_MODE_RISING_EDGE | EXT_CH_MODE_AUTOSTART, mpu6050_interrupt_handler},
-		{EXT_CH_MODE_DISABLED, NULL},
+		{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel1_interrupt},
+		{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel2_interrupt},
+		{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel3_interrupt},
+		{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel4_interrupt},
     	{EXT_CH_MODE_DISABLED, NULL},
     	{EXT_CH_MODE_DISABLED, NULL},
-		{EXT_CH_MODE_DISABLED, NULL},
-    	{EXT_CH_MODE_DISABLED, NULL},
-    	{EXT_CH_MODE_DISABLED, NULL},
-    	{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel1_interrupt},
-    	{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel2_interrupt},
-    	{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel3_interrupt},
-    	{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel4_interrupt}
+    	{EXT_CH_MODE_DISABLED, NULL},//{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel1_interrupt},
+    	{EXT_CH_MODE_DISABLED, NULL},//{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel2_interrupt},
+    	{EXT_CH_MODE_DISABLED, NULL},//{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel3_interrupt},
+    	{EXT_CH_MODE_DISABLED, NULL}//{EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART, rx_channel4_interrupt}
 	},
 	EXT_MODE_EXTI(0, /* 0 */
 	              0, /* 1 */
@@ -279,16 +279,16 @@ static const EXTConfig extcfg = {
 	              0, /* 3 */
 	              EXT_MODE_GPIOA, /* 4 */
 	              EXT_MODE_GPIOB, /* 5 */
-	              0, /* 6 */
-	              0, /* 7 */
-	              0, /* 8 */
-	              0, /* 9 */
+	              EXT_MODE_GPIOC, /* 6 */
+	              EXT_MODE_GPIOC, /* 7 */
+	              EXT_MODE_GPIOC, /* 8 */
+	              EXT_MODE_GPIOC, /* 9 */
 	              0, /* 10 */
 	              0, /* 11 */
-	              EXT_MODE_GPIOB, /* 12 */
-	              EXT_MODE_GPIOB, /* 13 */
-	              EXT_MODE_GPIOB, /* 14 */
-	              EXT_MODE_GPIOB) /* 15 */
+	              0,//EXT_MODE_GPIOB, /* 12 */
+	              0,//EXT_MODE_GPIOB, /* 13 */
+	              0,//EXT_MODE_GPIOB, /* 14 */
+	              0)//EXT_MODE_GPIOB) /* 15 */
 };
 
 /*
@@ -299,8 +299,9 @@ static const EXTConfig extcfg = {
  * | |      \  /\  /  | |  | |
  * |_|       \/  \/   |_|  |_|
  */
-static PWMConfig pwmcfg1 = { 1000000, //72, /* 1 uS clock.*/
-							20000, //4000, /* Period 250Hz.*/
+/*
+static PWMConfig pwmcfg2 = { 1000000, //72, // 1 uS clock.
+							20000, //4000, // Period 250Hz.
 							NULL,
                             { {PWM_OUTPUT_ACTIVE_HIGH, NULL}, //CH1 - D27 - GPIOA 8
                               {PWM_OUTPUT_DISABLED, NULL}, //CH2 - D26 - GPIOA 9
@@ -308,8 +309,8 @@ static PWMConfig pwmcfg1 = { 1000000, //72, /* 1 uS clock.*/
                               {PWM_OUTPUT_ACTIVE_HIGH, NULL} }, //CH4 - D24 - GPIOA 11
                             0
                           };
-static PWMConfig pwmcfg3 = { 1000000, //72, /* 1 uS clock.*/
-							20000, //4000, /* Period 250Hz.*/
+static PWMConfig pwmcfg3 = { 1000000, //72, // 1 uS clock.
+							20000, //4000, // Period 250Hz.
 							NULL,
                             { {PWM_OUTPUT_ACTIVE_HIGH, NULL}, //CH1 - D5 - GPIOA 6
                               {PWM_OUTPUT_ACTIVE_HIGH, NULL}, //CH2 - D4 - GPIOA 7
@@ -317,6 +318,16 @@ static PWMConfig pwmcfg3 = { 1000000, //72, /* 1 uS clock.*/
                               {PWM_OUTPUT_DISABLED, NULL} }, //CH4 - D33 - GPIOB 1
                               //{PWM_OUTPUT_ACTIVE_HIGH, NULL}, //CH3 - D3 - GPIOB 0
                               //{PWM_OUTPUT_ACTIVE_HIGH, NULL} }, //CH4 - D33 - GPIOB 1
+                            0
+                          };
+*/
+static PWMConfig pwmcfg2 = { 1000000, //72, // 1 uS clock.
+							20000, //4000, // Period 250Hz.
+							NULL,
+                            { {PWM_OUTPUT_ACTIVE_HIGH, NULL},   //CH1 - GPIOA 0
+                              {PWM_OUTPUT_ACTIVE_HIGH, NULL},   //CH2 - GPIOA 1
+                              {PWM_OUTPUT_ACTIVE_HIGH, NULL},   //CH3 - GPIOB 10
+                              {PWM_OUTPUT_ACTIVE_HIGH, NULL} }, //CH4 - GPIOB 11
                             0
                           };
 
@@ -345,11 +356,11 @@ static msg_t ThreadMotors(void *arg) {
 	chRegSetThreadName("Motors");
 
 	while (TRUE) {
-		pwmEnableChannel(&PWMD1, 0, RC_INPUT_CHANNELS[2]); // start up PWMs so ESCs can initialize
-		pwmEnableChannel(&PWMD1, 3, RC_INPUT_CHANNELS[2]);
-		pwmEnableChannel(&PWMD3, 0, RC_INPUT_CHANNELS[2]);
-		pwmEnableChannel(&PWMD3, 1, RC_INPUT_CHANNELS[2]);
-		chThdSleepMilliseconds(50);
+		pwmEnableChannel(&PWMD2, 0, RC_INPUT_CHANNELS[2]); // start up PWMs so ESCs can initialize
+		pwmEnableChannel(&PWMD2, 1, RC_INPUT_CHANNELS[2]);
+		pwmEnableChannel(&PWMD2, 2, RC_INPUT_CHANNELS[2]);
+		pwmEnableChannel(&PWMD2, 3, RC_INPUT_CHANNELS[2]);
+		chThdSleepMilliseconds(10);
 	}
 
 	return 0;
@@ -388,53 +399,27 @@ int main(void) {
 	chprintf((BaseChannel *)&SERIAL_DEBUG, "\r\nTrunetcopter\r\n");
 
 	/*
-	 * Set I2C1 ports to opendrain
-	 */
-	palSetPadMode(GPIOB, 6, PAL_MODE_STM32_ALTERNATE_OPENDRAIN);
-	palSetPadMode(GPIOB, 7, PAL_MODE_STM32_ALTERNATE_OPENDRAIN);
-
-	/*
-	 * Set Interrupt pins to input
-	 */
-	palSetPadMode(GPIOA, 4, PAL_MODE_INPUT); // HMC5883L Interrupt
-	palSetPadMode(GPIOB, 5, PAL_MODE_INPUT); // MPU6050 Interrupt
-	palSetPadMode(GPIOB, 12, PAL_MODE_INPUT); // RX Channel 1
-	palSetPadMode(GPIOB, 13, PAL_MODE_INPUT); // RX Channel 2
-	palSetPadMode(GPIOB, 14, PAL_MODE_INPUT); // RX Channel 3
-	palSetPadMode(GPIOB, 15, PAL_MODE_INPUT); // RX Channel 4
-
-	/*
 	 * Enable Timer2
 	 */
-	TIM2->CR1 = 0x00000000;
-	RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
-	TIM2->SMCR = 0; // slave mode disabled
-	TIM2->PSC = 72;
-	TIM2->ARR = 0xffff;
-	TIM2->SR = 0;
-	TIM2->DIER = 0;
-	TIM2->CR1 = 0x00000001;
+	TIM4->CR1 = 0x00000000;
+	RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;
+	TIM4->SMCR = 0; // slave mode disabled
+	TIM4->PSC = 84;
+	TIM4->ARR = 0xffff;
+	TIM4->SR = 0;
+	TIM4->DIER = 0;
+	TIM4->CR1 = 0x00000001;
 
 	/*
 	 * Enable PWM
 	 */
 	pwmInit();
-	pwmObjectInit(&PWMD1);
-	pwmObjectInit(&PWMD3);
-	palSetPadMode(GPIOA,  8, PAL_MODE_STM32_ALTERNATE_PUSHPULL); // MOTOR 1
-	palSetPadMode(GPIOA, 11, PAL_MODE_STM32_ALTERNATE_PUSHPULL); // MOTOR 2
-	palSetPadMode(GPIOA,  6, PAL_MODE_STM32_ALTERNATE_PUSHPULL); // MOTOR 3
-	palSetPadMode(GPIOA,  7, PAL_MODE_STM32_ALTERNATE_PUSHPULL); // MOTOR 4
-	//palSetPadMode(GPIOB,  0, PAL_MODE_STM32_ALTERNATE_PUSHPULL); // MOTOR 5
-	//palSetPadMode(GPIOB,  1, PAL_MODE_STM32_ALTERNATE_PUSHPULL); // MOTOR 6
-	pwmStart(&PWMD1, &pwmcfg1);
-	pwmStart(&PWMD3, &pwmcfg3);
-	pwmEnableChannel(&PWMD1, 0, 1000); // start up PWMs so ESCs can initialize
-	pwmEnableChannel(&PWMD1, 3, 1000);
-	pwmEnableChannel(&PWMD3, 0, 1000);
-	pwmEnableChannel(&PWMD3, 1, 1000);
-	//pwmEnableChannel(&PWMD3, 2, 1000);
-	//pwmEnableChannel(&PWMD3, 3, 1000);
+	pwmObjectInit(&PWMD2);
+	pwmStart(&PWMD2, &pwmcfg2);
+	pwmEnableChannel(&PWMD2, 0, 1000);
+	pwmEnableChannel(&PWMD2, 1, 1000);
+	pwmEnableChannel(&PWMD2, 2, 1000);
+	pwmEnableChannel(&PWMD2, 3, 1000);
 
 	chEvtInit(&imu_event);
 	
@@ -447,7 +432,7 @@ int main(void) {
 	baro_ms5611_start();
 	imu_mpu6050_start();
 	magn_hmc5883_start();
-	gps_mtk_start();
+	//gps_mtk_start();
 	
 	algebra_start();
 
@@ -456,7 +441,7 @@ int main(void) {
 	/*
 	 * Creates the threads.
 	 */
-	chThdCreateStatic(waThreadLed, sizeof(waThreadLed), NORMALPRIO, ThreadLed, NULL);
+	//chThdCreateStatic(waThreadLed, sizeof(waThreadLed), NORMALPRIO, ThreadLed, NULL);
 	chThdCreateStatic(waThreadMotors, sizeof(waThreadMotors), NORMALPRIO, ThreadMotors, NULL);
 #ifdef DEBUG
 	chThdCreateStatic(waThreadDebug, sizeof(waThreadDebug), NORMALPRIO, ThreadDebug, NULL);

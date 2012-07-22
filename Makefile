@@ -5,7 +5,7 @@
 
 # Compiler options here.
 ifeq ($(USE_OPT),)
-  USE_OPT = -O0 -ggdb -fomit-frame-pointer -falign-functions=16
+  USE_OPT = -O0 -ggdb -fomit-frame-pointer -falign-functions=16 -mfloat-abi=softfp -mfpu=fpv4-sp-d16 -fsingle-precision-constant
 endif
 
 # C specific options here (added to USE_OPT).
@@ -59,16 +59,17 @@ PROJECT = trunetcopter
 
 # Imported source files and paths
 CHIBIOS = /Users/trunet/src/chibios
-include $(CHIBIOS)/boards/MAPLEMINI_STM32_F103/board.mk
-include $(CHIBIOS)/os/hal/platforms/STM32F1xx/platform.mk
+include $(CHIBIOS)/boards/FEZ_CERB40/board.mk
+include $(CHIBIOS)/os/hal/platforms/STM32F4xx/platform.mk
 include $(CHIBIOS)/os/hal/hal.mk
-include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32F1xx/port.mk
+include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32F4xx/port.mk
 include $(CHIBIOS)/os/kernel/kernel.mk
 #include $(CHIBIOS)/test/test.mk
 
 # Define linker script file here
 #LDSCRIPT= $(PORTLD)/STM32F103xB.ld
-LDSCRIPT= $(PORTLD)/STM32F103xE_maple.ld
+#LDSCRIPT= $(PORTLD)/STM32F103xE_maple.ld
+LDSCRIPT = $(PORTLD)/STM32F405xG.ld
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -81,7 +82,6 @@ CSRC = $(PORTSRC) \
        $(CHIBIOS)/os/various/evtimer.c \
        $(CHIBIOS)/os/various/syscalls.c \
        $(CHIBIOS)/os/various/chprintf.c \
-       $(CHIBIOS)/os/various/chrtclib.c \
        $(CHIBIOS)/os/various/memstreams.c \
        $(wildcard src/eeprom/*.c) \
        $(wildcard src/sensors/*.c) \
@@ -127,7 +127,7 @@ INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
 # Compiler settings
 #
 
-MCU  = cortex-m3
+MCU  = cortex-m4
 
 #TRGT = arm-elf-
 TRGT = arm-none-eabi-
@@ -165,7 +165,7 @@ CPPWARN = -Wall -Wextra
 #
 
 # List all default C defines here, like -D_DEBUG=1
-DDEFS =
+DDEFS = -DCORTEX_USE_FPU=TRUE
 
 # List all default ASM defines here, like -D_DEBUG=1
 DADEFS =
@@ -217,4 +217,5 @@ include $(CHIBIOS)/os/ports/GCC/ARMCMx/rules.mk
 
 install:
 	#python /Users/trunet/src/libmaple/support/stm32loader.py -p /dev/tty.usbserial-A8006AtT -eVw /Users/trunet/Documents/workspace/trunetcopter/build/trunetcopter.bin
-	dfu-util -a1 -d 1EAF:0003 -D /Users/trunet/Documents/workspace/trunetcopter/build/trunetcopter.bin -R
+	#dfu-util -a1 -d 1EAF:0003 -D /Users/trunet/Documents/workspace/trunetcopter/build/trunetcopter.bin -R
+	dfu-util -d 0483:df11 -c 0 -i 0 -a 0 -s 0x08000000 -D /Users/trunet/Documents/workspace/trunetcopter/build/trunetcopter.bin -R

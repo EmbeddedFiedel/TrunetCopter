@@ -5,7 +5,7 @@
 
 #define DEBUG
 //#define DEBUG_OUTPUT_QUARTENION_BINARY
-#define SERIAL_DEBUG SD1
+#define SERIAL_DEBUG SD3
 
 #define SERIAL_GPS SD2
 
