@@ -399,12 +399,12 @@ int main(void) {
 	chprintf((BaseChannel *)&SERIAL_DEBUG, "\r\nTrunetcopter\r\n");
 
 	/*
-	 * Enable Timer2
+	 * Enable Timer 4
 	 */
 	TIM4->CR1 = 0x00000000;
 	RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;
 	TIM4->SMCR = 0; // slave mode disabled
-	TIM4->PSC = 84;
+	TIM4->PSC = 84; // 84 mhz maximum apb1 bus speed
 	TIM4->ARR = 0xffff;
 	TIM4->SR = 0;
 	TIM4->DIER = 0;
