@@ -1,7 +1,9 @@
 A ChibiOS multicopter code.
 
-Using on leaflabs maple mini board, FreeIMU v0.4r3,
-PPM SUM receiver and 24LC256 EEPROM.
+Using on FEZ Cerb40 STM32F4 board with FreeIMU v0.4r3,
+Futaba RX and 24LC256 EEPROM.
+
+Up to 4 PWM motors and 4 RX channels.
 
 Copyright (C) 2012 Wagner Sartori Junior <wsartori@gmail.com>
 http://www.wsartori.com
