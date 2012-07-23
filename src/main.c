@@ -118,7 +118,7 @@ static msg_t ThreadDebug(void *arg) {
 		}
 		chprintf((BaseChannel *)&SERIAL_DEBUG, "==================================\r\n");
 		chEvtBroadcastFlags(&imu_event, EVENT_MASK(5));
-		chThdSleepMilliseconds(500);
+		chThdSleepMilliseconds(750);
 #else
 		if (cnt_debug == 4) {
 			uint8_t i;
@@ -299,30 +299,8 @@ static const EXTConfig extcfg = {
  * | |      \  /\  /  | |  | |
  * |_|       \/  \/   |_|  |_|
  */
-/*
-static PWMConfig pwmcfg2 = { 1000000, //72, // 1 uS clock.
-							20000, //4000, // Period 250Hz.
-							NULL,
-                            { {PWM_OUTPUT_ACTIVE_HIGH, NULL}, //CH1 - D27 - GPIOA 8
-                              {PWM_OUTPUT_DISABLED, NULL}, //CH2 - D26 - GPIOA 9
-                              {PWM_OUTPUT_DISABLED, NULL}, //CH3 - D25 - GPIOA 10
-                              {PWM_OUTPUT_ACTIVE_HIGH, NULL} }, //CH4 - D24 - GPIOA 11
-                            0
-                          };
-static PWMConfig pwmcfg3 = { 1000000, //72, // 1 uS clock.
-							20000, //4000, // Period 250Hz.
-							NULL,
-                            { {PWM_OUTPUT_ACTIVE_HIGH, NULL}, //CH1 - D5 - GPIOA 6
-                              {PWM_OUTPUT_ACTIVE_HIGH, NULL}, //CH2 - D4 - GPIOA 7
-                              {PWM_OUTPUT_DISABLED, NULL}, //CH3 - D3 - GPIOB 0
-                              {PWM_OUTPUT_DISABLED, NULL} }, //CH4 - D33 - GPIOB 1
-                              //{PWM_OUTPUT_ACTIVE_HIGH, NULL}, //CH3 - D3 - GPIOB 0
-                              //{PWM_OUTPUT_ACTIVE_HIGH, NULL} }, //CH4 - D33 - GPIOB 1
-                            0
-                          };
-*/
-static PWMConfig pwmcfg2 = { 1000000, //72, // 1 uS clock.
-							20000, //4000, // Period 250Hz.
+static PWMConfig pwmcfg2 = {1000000, // 1 uS clock.
+							20000,   // Period 250Hz.
 							NULL,
                             { {PWM_OUTPUT_ACTIVE_HIGH, NULL},   //CH1 - GPIOA 0
                               {PWM_OUTPUT_ACTIVE_HIGH, NULL},   //CH2 - GPIOA 1
@@ -432,7 +410,7 @@ int main(void) {
 	baro_ms5611_start();
 	imu_mpu6050_start();
 	magn_hmc5883_start();
-	//gps_mtk_start();
+	gps_mtk_start();
 	
 	algebra_start();
 
