@@ -33,6 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "main.h"
 #include "i2c_local.h"
+#include "serial_local.h"
 
 #include "eeprom/eeprom.h"
 
@@ -42,8 +43,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "sensors/gps_mtk.h"
 
 #include "algebra.h"
-
-uint16_t cnt_debug = 0;
 
 /*
  ******************************************************************************
@@ -66,134 +65,6 @@ extern float sampleFreq;
 #define RC_IN_RANGE(x) (((x)>900 && (x)<2300))
 volatile unsigned short RC_INPUT_CHANNELS[4], RC_INPUT_LAST_TCNT;
 char PPM_FRAME_GOOD = 1;
-
-/* 
- * Threads
- */
-#ifdef DEBUG
-static WORKING_AREA(waThreadDebug, 256);
-static msg_t ThreadDebug(void *arg) {
-	(void)arg;
-	chRegSetThreadName("Debug");
-
-	struct EventListener self_el;
-	chEvtRegister(&imu_event, &self_el, 5);
-
-	while (TRUE) {
-		chEvtWaitOne(EVENT_MASK(4));
-#ifndef DEBUG_OUTPUT_QUARTENION_BINARY
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "frequency: %f\r\n", sampleFreq);
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "----------------------------------\r\n");
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "RX (Channel 1, 2, 3, 4): %d, %d, %d, %d\r\n", RC_INPUT_CHANNELS[0], RC_INPUT_CHANNELS[1], RC_INPUT_CHANNELS[2], RC_INPUT_CHANNELS[3]);
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "----------------------------------\r\n");
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "Temperature: %f\r\n", baro_data.ftempms);
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "Pressure: %f\r\n", baro_data.fbaroms);
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "Altitude: %f\r\n", baro_data.faltims);
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "----------------------------------\r\n");
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "Accelerometer(x, y, z): %f, ", imu_data.acc_x);
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "%f, ", imu_data.acc_y);
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "%f\r\n", imu_data.acc_z);
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "Gyroscope(x, y, z): %f, ", imu_data.gyro_x);
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "%f, ", imu_data.gyro_y);
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "%f\r\n", imu_data.gyro_z);
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "Magnetometer(x, y, z): %f, ", imu_data.mag_x);
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "%f, ", imu_data.mag_y);
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "%f\r\n", imu_data.mag_z);
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "----------------------------------\r\n");
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "q0, q1, q2, q3: %f, ", q0);
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "%f, ", q1);
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "%f, ", q2);
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "%f\r\n", q3);
-		if (gps_data.valid == 1) {
-			chprintf((BaseChannel *)&SERIAL_DEBUG, "----------------------------------\r\n");
-			chprintf((BaseChannel *)&SERIAL_DEBUG, "satelites: %d\r\n", gps_data.satellites);
-			chprintf((BaseChannel *)&SERIAL_DEBUG, "latitude: %d\r\n", gps_data.latitude);
-			chprintf((BaseChannel *)&SERIAL_DEBUG, "longitude: %d\r\n", gps_data.longitude);
-			chprintf((BaseChannel *)&SERIAL_DEBUG, "altitude: %f\r\n", gps_data.altitude);
-			chprintf((BaseChannel *)&SERIAL_DEBUG, "speed(m/s): %f\r\n", gps_data.speed);
-			chprintf((BaseChannel *)&SERIAL_DEBUG, "heading(degrees): %f\r\n", gps_data.heading);
-			chprintf((BaseChannel *)&SERIAL_DEBUG, "UTC date: %d\r\n", gps_data.utc_date);
-			chprintf((BaseChannel *)&SERIAL_DEBUG, "UTC time: %d\r\n", gps_data.utc_time);
-			chprintf((BaseChannel *)&SERIAL_DEBUG, "milliseconds from epoch: %d\r\n", gps_data.time);
-		}
-		chprintf((BaseChannel *)&SERIAL_DEBUG, "==================================\r\n");
-		chEvtBroadcastFlags(&imu_event, EVENT_MASK(5));
-		chThdSleepMilliseconds(750);
-#else
-		if (cnt_debug == 4) {
-			uint8_t i;
-
-			uint8_t * b1 = (uint8_t *) &q0;
-			for(i=0; i<4; i++) {
-				uint8_t b1q1 = (b1[i] >> 4) & 0x0f;
-				uint8_t b2q1 = (b1[i] & 0x0f);
-
-				uint8_t c1q1 = (b1q1 < 10) ? ('0' + b1q1) : 'A' + b1q1 - 10;
-				uint8_t c2q1 = (b2q1 < 10) ? ('0' + b2q1) : 'A' + b2q1 - 10;
-
-				sdWrite(&SERIAL_DEBUG, &c1q1, 1);
-				sdWrite(&SERIAL_DEBUG, &c2q1, 1);
-			}
-			chprintf((BaseChannel *)&SERIAL_DEBUG, ",");
-			uint8_t * b2 = (uint8_t *) &q1;
-			for(i=0; i<4; i++) {
-				uint8_t b1q2 = (b2[i] >> 4) & 0x0f;
-				uint8_t b2q2 = (b2[i] & 0x0f);
-
-				uint8_t c1q2 = (b1q2 < 10) ? ('0' + b1q2) : 'A' + b1q2 - 10;
-				uint8_t c2q2 = (b2q2 < 10) ? ('0' + b2q2) : 'A' + b2q2 - 10;
-
-				sdWrite(&SERIAL_DEBUG, &c1q2, 1);
-				sdWrite(&SERIAL_DEBUG, &c2q2, 1);
-			}
-			chprintf((BaseChannel *)&SERIAL_DEBUG, ",");
-			uint8_t * b3 = (uint8_t *) &q2;
-			for(i=0; i<4; i++) {
-				uint8_t b1q3 = (b3[i] >> 4) & 0x0f;
-				uint8_t b2q3 = (b3[i] & 0x0f);
-
-				uint8_t c1q3 = (b1q3 < 10) ? ('0' + b1q3) : 'A' + b1q3 - 10;
-				uint8_t c2q3 = (b2q3 < 10) ? ('0' + b2q3) : 'A' + b2q3 - 10;
-
-				sdWrite(&SERIAL_DEBUG, &c1q3, 1);
-				sdWrite(&SERIAL_DEBUG, &c2q3, 1);
-			}
-			chprintf((BaseChannel *)&SERIAL_DEBUG, ",");
-			uint8_t * b4 = (uint8_t *) &q3;
-			for(i=0; i<4; i++) {
-				uint8_t b1q4 = (b4[i] >> 4) & 0x0f;
-				uint8_t b2q4 = (b4[i] & 0x0f);
-
-				uint8_t c1q4 = (b1q4 < 10) ? ('0' + b1q4) : 'A' + b1q4 - 10;
-				uint8_t c2q4 = (b2q4 < 10) ? ('0' + b2q4) : 'A' + b2q4 - 10;
-
-				sdWrite(&SERIAL_DEBUG, &c1q4, 1);
-				sdWrite(&SERIAL_DEBUG, &c2q4, 1);
-			}
-			chprintf((BaseChannel *)&SERIAL_DEBUG, ",");
-			uint8_t * b5 = (uint8_t *) &sampleFreq;
-			for(i=0; i<4; i++) {
-				uint8_t b1 = (b5[i] >> 4) & 0x0f;
-				uint8_t b2 = (b5[i] & 0x0f);
-
-				uint8_t c1 = (b1 < 10) ? ('0' + b1) : 'A' + b1 - 10;
-				uint8_t c2 = (b2 < 10) ? ('0' + b2) : 'A' + b2 - 10;
-
-				sdWrite(&SERIAL_DEBUG, &c1, 1);
-				sdWrite(&SERIAL_DEBUG, &c2, 1);
-			}
-			chprintf((BaseChannel *)&SERIAL_DEBUG, ",\r\n");
-
-			cnt_debug = 0;
-		}
-		chEvtBroadcastFlags(&imu_event, EVENT_MASK(5));
-		cnt_debug++;
-#endif
-	}
-
-	return 0;
-}
-#endif
 
 /*
  *  _____       _                             _
@@ -364,17 +235,7 @@ int main(void) {
 	halInit();
 	chSysInit();
 
-	/*
-	 * Activates the serial driver 1 using the driver default configuration.
-	 */
-	const SerialConfig debugPortConfig = {
-	    115200,
-	    0,
-	    USART_CR2_STOP1_BITS | USART_CR2_LINEN,
-	    0
-	};
-	sdStart(&SERIAL_DEBUG, &debugPortConfig);
-	chprintf((BaseChannel *)&SERIAL_DEBUG, "\r\nTrunetcopter\r\n");
+	serial_start();
 
 	/*
 	 * Enable Timer 4
@@ -421,9 +282,6 @@ int main(void) {
 	 */
 	//chThdCreateStatic(waThreadLed, sizeof(waThreadLed), NORMALPRIO, ThreadLed, NULL);
 	chThdCreateStatic(waThreadMotors, sizeof(waThreadMotors), NORMALPRIO, ThreadMotors, NULL);
-#ifdef DEBUG
-	chThdCreateStatic(waThreadDebug, sizeof(waThreadDebug), NORMALPRIO, ThreadDebug, NULL);
-#endif
 
 	return 0;
 }
