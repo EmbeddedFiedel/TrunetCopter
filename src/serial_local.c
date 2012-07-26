@@ -6,7 +6,7 @@ static volatile uint8_t headTX,tailTX;
 static uint8_t bufTX[TX_BUFFER_SIZE];
 static uint8_t inBuf[INBUF_SIZE];
 
-extern EventSource imu_event;
+//extern EventSource imu_event;
 extern baro_data_t baro_data;
 extern imu_data_t imu_data;
 extern gps_data_t gps_data;
@@ -21,15 +21,15 @@ static msg_t SerialThread(void *arg){
         (void)arg;
         chRegSetThreadName("Serial");
 
-	struct EventListener self_el;
-        chEvtRegister(&imu_event, &self_el, 5);
+        //struct EventListener self_el;
+        //chEvtRegister(&imu_event, &self_el, 5);
 
 #ifdef DEBUG_OUTPUT_QUARTENION_BINARY
 	uint16_t cnt_debug = 0;
 #endif
 
         while (TRUE) {
-		chEvtWaitOne(EVENT_MASK(4));
+		//chEvtWaitOne(EVENT_MASK(4));
 #ifndef DEBUG_OUTPUT_QUARTENION_BINARY
 		chprintf((BaseChannel *)&SERIAL_OUTPUT, "frequency: %f\r\n", sampleFreq);
 		chprintf((BaseChannel *)&SERIAL_OUTPUT, "----------------------------------\r\n");
@@ -66,7 +66,7 @@ static msg_t SerialThread(void *arg){
 			chprintf((BaseChannel *)&SERIAL_OUTPUT, "milliseconds from epoch: %d\r\n", gps_data.time);
 		}
 		chprintf((BaseChannel *)&SERIAL_OUTPUT, "==================================\r\n");
-		chEvtBroadcastFlags(&imu_event, EVENT_MASK(5));
+		//chEvtBroadcastFlags(&imu_event, EVENT_MASK(5));
 		chThdSleepMilliseconds(750);
 #else
 		if (cnt_debug == 4) {
@@ -135,7 +135,7 @@ static msg_t SerialThread(void *arg){
 
 			cnt_debug = 0;
 		}
-		chEvtBroadcastFlags(&imu_event, EVENT_MASK(5));
+		//chEvtBroadcastFlags(&imu_event, EVENT_MASK(5));
 		cnt_debug++;
 #endif
 	}

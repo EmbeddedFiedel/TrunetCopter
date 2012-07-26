@@ -184,15 +184,23 @@ static PWMConfig pwmcfg2 = {1000000, // 1 uS clock.
  * Red LED blinker thread, times are in milliseconds.
  * GPIOB,1 is the LED on the Maple Mini
  */
-static WORKING_AREA(waThreadLed, 64);
+static WORKING_AREA(waThreadLed, 32);
 static msg_t ThreadLed(void *arg) {
 	(void)arg;
 	chRegSetThreadName("LED");
 	
 	while (TRUE) {
-		palClearPad(GPIOB, 1);
+		palClearPad(GPIOB, 3);
 		chThdSleepMilliseconds(500);
-		palSetPad(GPIOB, 1);
+		palSetPad(GPIOB, 3);
+		chThdSleepMilliseconds(500);
+		palClearPad(GPIOB, 4);
+		chThdSleepMilliseconds(500);
+		palSetPad(GPIOB, 4);
+		chThdSleepMilliseconds(500);
+		palClearPad(GPIOB, 9);
+		chThdSleepMilliseconds(500);
+		palSetPad(GPIOB, 9);
 		chThdSleepMilliseconds(500);
 	}
 	
@@ -234,6 +242,10 @@ int main(void) {
 	 */
 	halInit();
 	chSysInit();
+
+	palSetPadMode(GPIOB, 3, PAL_MODE_OUTPUT_PUSHPULL);
+	palSetPadMode(GPIOB, 4, PAL_MODE_OUTPUT_PUSHPULL);
+	palSetPadMode(GPIOB, 9, PAL_MODE_OUTPUT_PUSHPULL);
 
 	serial_start();
 
@@ -280,7 +292,7 @@ int main(void) {
 	/*
 	 * Creates the threads.
 	 */
-	//chThdCreateStatic(waThreadLed, sizeof(waThreadLed), NORMALPRIO, ThreadLed, NULL);
+	chThdCreateStatic(waThreadLed, sizeof(waThreadLed), NORMALPRIO, ThreadLed, NULL);
 	chThdCreateStatic(waThreadMotors, sizeof(waThreadMotors), NORMALPRIO, ThreadMotors, NULL);
 
 	return 0;
