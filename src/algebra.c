@@ -1,6 +1,7 @@
 #include "ch.h"
 #include "hal.h"
 
+#include <string.h>
 #include "math.h"
 
 #include "main.h"
@@ -20,6 +21,9 @@ systime_t now, lastupdate;
 extern float q[4];
 extern imu_data_t imu_data;
 extern EventSource imu_event;
+
+extern Mailbox mb[3];
+extern msg_t mbBuf[3][MAILBOX_MSG_SIZE];
 
 float invSqrt(float x) {
 	float halfx = 0.5f * x;
@@ -151,7 +155,7 @@ static msg_t ThreadQ(void *arg) {
 
 	now = chTimeNow();
 	while (TRUE) {
-		chEvtWaitAll(EVENT_MASK(2) && EVENT_MASK(3) && EVENT_MASK(5));
+		chEvtWaitAll(EVENT_MASK(2) && EVENT_MASK(3));
 
 		now = chTimeNow();
 		sampleFreq = 1.0 / ((now-lastupdate) / (CH_FREQUENCY / 1.0));
@@ -161,7 +165,8 @@ static msg_t ThreadQ(void *arg) {
 		AHRSupdate(imu_data.gyro_x * M_PI/180, imu_data.gyro_y * M_PI/180, imu_data.gyro_z * M_PI/180, imu_data.acc_x, imu_data.acc_y, imu_data.acc_z, imu_data.mag_x, imu_data.mag_y, imu_data.mag_z);
 		chEvtBroadcastFlags(&imu_event, EVENT_MASK(4));
 
-		//chThdSleepUntil(now);
+		memcpy(&mbBuf[MAILBOX_IMU], &imu_data, sizeof(imu_data_t));
+		chMBPost(&mb[MAILBOX_IMU], (msg_t)&mbBuf[MAILBOX_IMU], TIME_IMMEDIATE);
 	}
 
 	return 0;

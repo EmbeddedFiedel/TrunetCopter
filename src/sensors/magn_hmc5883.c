@@ -156,7 +156,7 @@ static msg_t PollMagnThread(void *arg){
 	chEvtRegister(&imu_event, &self_el, 3);
 
 	while (TRUE) {
-		chEvtWaitOne(EVENT_MASK(1));
+		chEvtWaitAll(EVENT_MASK(1) && EVENT_MASK(4));
 		hmc5883_getValuesfloat();
 		chEvtBroadcastFlags(&imu_event, EVENT_MASK(3));
 	}

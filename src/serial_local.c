@@ -1,5 +1,7 @@
 #include "serial_local.h"
 
+#include <string.h>
+
 static volatile uint8_t serialHeadRX[1],serialTailRX[1];
 static uint8_t serialBufferRX[RX_BUFFER_SIZE][1];
 static volatile uint8_t headTX,tailTX;
@@ -7,12 +9,14 @@ static uint8_t bufTX[TX_BUFFER_SIZE];
 static uint8_t inBuf[INBUF_SIZE];
 
 //extern EventSource imu_event;
-extern baro_data_t baro_data;
-extern imu_data_t imu_data;
+//extern baro_data_t baro_data;
+//extern imu_data_t imu_data;
 extern gps_data_t gps_data;
 extern float q0, q1, q2, q3; // quaternion of sensor frame relative to auxiliary frame
 
 extern float sampleFreq;
+extern Mailbox mb[3];
+extern msg_t mbBuf[3][MAILBOX_MSG_SIZE];
 
 extern volatile unsigned short RC_INPUT_CHANNELS[4];
 
@@ -21,15 +25,20 @@ static msg_t SerialThread(void *arg){
         (void)arg;
         chRegSetThreadName("Serial");
 
-        //struct EventListener self_el;
-        //chEvtRegister(&imu_event, &self_el, 5);
-
 #ifdef DEBUG_OUTPUT_QUARTENION_BINARY
 	uint16_t cnt_debug = 0;
 #endif
 
         while (TRUE) {
-		//chEvtWaitOne(EVENT_MASK(4));
+        	baro_data_t baro_data;
+			chMBFetch(&mb[MAILBOX_BARO], mbBuf[MAILBOX_BARO], TIME_IMMEDIATE);
+			memcpy(&baro_data, &mbBuf[MAILBOX_BARO], sizeof(baro_data_t));
+			chMBReset(&mb[MAILBOX_BARO]);
+
+			imu_data_t imu_data;
+			chMBFetch(&mb[MAILBOX_IMU], mbBuf[MAILBOX_IMU], TIME_IMMEDIATE);
+			memcpy(&imu_data, &mbBuf[MAILBOX_IMU], sizeof(imu_data_t));
+			chMBReset(&mb[MAILBOX_IMU]);
 #ifndef DEBUG_OUTPUT_QUARTENION_BINARY
 		chprintf((BaseChannel *)&SERIAL_OUTPUT, "frequency: %f\r\n", sampleFreq);
 		chprintf((BaseChannel *)&SERIAL_OUTPUT, "----------------------------------\r\n");
@@ -66,7 +75,6 @@ static msg_t SerialThread(void *arg){
 			chprintf((BaseChannel *)&SERIAL_OUTPUT, "milliseconds from epoch: %d\r\n", gps_data.time);
 		}
 		chprintf((BaseChannel *)&SERIAL_OUTPUT, "==================================\r\n");
-		//chEvtBroadcastFlags(&imu_event, EVENT_MASK(5));
 		chThdSleepMilliseconds(750);
 #else
 		if (cnt_debug == 4) {

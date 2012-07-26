@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ch.h"
 #include "hal.h"
 #include "chprintf.h"
+#include "chmboxes.h"
 
 /* ARM includes */
 #include "math.h"
@@ -59,6 +60,8 @@ gps_data_t gps_data;
 float q0, q1, q2, q3; // quaternion of sensor frame relative to auxiliary frame
 
 EventSource imu_event;
+Mailbox mb[3];
+msg_t mbBuf[3][MAILBOX_MSG_SIZE];
 
 extern float sampleFreq;
 
@@ -272,7 +275,12 @@ int main(void) {
 	pwmEnableChannel(&PWMD2, 2, 1000);
 	pwmEnableChannel(&PWMD2, 3, 1000);
 
+	chMBInit(&mb[MAILBOX_BARO], mbBuf[MAILBOX_BARO], MAILBOX_BARO_SIZE);
+	chMBInit(&mb[MAILBOX_IMU], mbBuf[MAILBOX_IMU], MAILBOX_IMU_SIZE);
+	chMBInit(&mb[MAILBOX_GPS], mbBuf[MAILBOX_GPS], MAILBOX_GPS_SIZE);
+
 	chEvtInit(&imu_event);
+	chEvtBroadcastFlags(&imu_event, EVENT_MASK(4));
 	
 	EepromOpen(&EepromFile);
 	

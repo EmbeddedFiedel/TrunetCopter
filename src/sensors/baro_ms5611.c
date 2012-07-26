@@ -1,6 +1,7 @@
 #include "ch.h"
 #include "hal.h"
 
+#include <string.h>
 #include "math.h"
 
 #include "baro_ms5611.h"
@@ -11,6 +12,8 @@
 uint16_t ms5611_c[PROM_NB];
 
 extern baro_data_t baro_data;
+extern Mailbox mb[3];
+extern msg_t mbBuf[3][MAILBOX_MSG_SIZE];
 
 static int8_t baro_ms5611_crc(uint16_t* prom) {
 	int32_t i, j;
@@ -125,6 +128,9 @@ static msg_t PollBaroThread(void *arg){
 		baro_data.ftempms = tempms / 100.;
 		baro_data.fbaroms = baroms / 100.;
 		baro_data.faltims = ((pow((SEA_LEVEL_PRESSURE / baro_data.fbaroms), 1/5.257) - 1.0) * (baro_data.ftempms + 273.15)) / 0.0065;
+
+		memcpy(&mbBuf[MAILBOX_BARO], &baro_data, sizeof(baro_data_t));
+		chMBPost(&mb[MAILBOX_BARO], (msg_t)&mbBuf[MAILBOX_BARO], TIME_IMMEDIATE);
 	}
 	return 0;
 }

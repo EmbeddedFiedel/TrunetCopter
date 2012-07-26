@@ -337,10 +337,6 @@ typedef struct {
 	float mag_x;
 	float mag_y;
 	float mag_z;
-	float q0;
-	float q1;
-	float q2;
-	float q3;
 } imu_data_t;
 
 uint8_t set_mpu_sample_rate(uint8_t samplerate_divisor);

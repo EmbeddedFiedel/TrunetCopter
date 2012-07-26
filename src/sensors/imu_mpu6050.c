@@ -257,7 +257,7 @@ static msg_t PollIMUThread(void *arg){
 	chEvtRegister(&imu_event, &self_el, 2);
 
 	while (TRUE) {
-		chEvtWaitOne(EVENT_MASK(0));
+		chEvtWaitAll(EVENT_MASK(0) && EVENT_MASK(4));
 		mpu_i2c_read_data(0x3B, 14); // Read accelerometer, temperature and gyro data
 		chEvtBroadcastFlags(&imu_event, EVENT_MASK(2));
 
